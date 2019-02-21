@@ -1,0 +1,21 @@
+{:deps   {:aliases [:dev]}
+ :builds {:workspaces {:target     nubank.workspaces.shadow-cljs.target
+                       :ns-regexp  "-(test|cards)$"
+                       :output-dir "resources/public/js/workspaces"
+                       :asset-path "/js/workspaces"
+                       :devtools   {:preloads           [devtools.preload
+                                                         fulcro.inspect.preload]
+                                    :http-root          "resources/public"
+                                    :http-port          3655
+                                    :http-resource-root "public/"}}
+          :client     {:target     :browser
+                       :output-dir "resources/public/js/client"
+                       :asset-path "/js/client"
+                       :modules    {:main {:entries [lava-jato-the-game.client]}}
+                       :devtools   {:preloads           [lava-jato-the-game.user
+                                                         devtools.preload
+                                                         fulcro.inspect.preload]
+                                    :after-load         lava-jato-the-game.user/after-load
+                                    :http-root          "resources/public"
+                                    :http-port          8080
+                                    :http-resource-root "public/"}}}}

@@ -1,0 +1,93 @@
+type Party {
+    id: ID
+    name: String
+    acronym: String
+    description: String
+}
+
+type Player {
+    id: ID
+    name: String
+    fb_id: String
+}
+
+type Plan {
+    id: ID
+    characters: [Character]
+}
+
+type Mission {
+    id: ID
+    description: String
+    photo: String
+    duration: Int
+    start_time: Int
+    status: String
+    ## requirements: _
+    ## reward: _
+}
+
+enum CharCLass {
+    MINERADOR_BTC
+}
+
+type Class {
+    id: ID
+    name: String
+    description: String
+    ## boost: _
+}
+
+type Attributes {
+    id: ID
+    charisma: String
+    persuation: String
+    wisdom: String
+    deceptive: String
+}
+
+
+type Character {
+    id: ID
+    player: Player
+    name: String
+    party: Party
+    class: Class
+    attributes: Attributes
+    friends: [Character]
+    resources: Resources
+}
+
+type Resources {
+    exp: String
+    money: String
+    dirty: String
+    arrestedCount: Int
+}
+
+input rcharacter {
+    player: ID
+    name: String
+}
+
+input rparty {
+    nome: String
+    acronym: String
+    description: String
+}
+
+type MutationRoot {
+    login(email: String, password: String): Player
+    login_fb (fbid: String, fbtoken: String): Player
+    create_fb (fbid: String, fbtoken: String): Player
+    register_character(rcharacter: rcharacter): Character
+    create_party(rparty: rparty): Party
+    start_mission(missionId: ID, characterId: ID): Mission
+}
+
+type QueryRoot {
+    profile: Character
+    missions: [Mission]
+    classes: [Class]
+    parties: [Party]
+}
