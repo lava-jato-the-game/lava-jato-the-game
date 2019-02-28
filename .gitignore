@@ -5,4 +5,11 @@
 node_modules
 resources/public/js/
 .cpcache/
-
+/_build/
+/cover/
+/deps/
+/doc/
+/.fetch
+erl_crash.dump
+*.ez
+lava_jato_the_game-*.tar
