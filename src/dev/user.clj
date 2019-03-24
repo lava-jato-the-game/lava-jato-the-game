@@ -56,7 +56,7 @@
                         (http/stop x))
                       (-> (lacinia.pedestal/service-map #(schema (io/resource "schema.graphql"))
                                                         {:graphiql true})
-                          (assoc ::http/allowed-origins ["http://localhost:8080"])
+                          (assoc ::http/allowed-origins (constantly true))
                           http/default-interceptors
                           http/dev-interceptors
                           http/create-server

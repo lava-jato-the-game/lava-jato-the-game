@@ -8,11 +8,13 @@
 
 ## Frontend develop
 
-- Install `clj` foi [clojure](https://clojure.org/)
+- Install `clj` from [clojure](https://clojure.org/)
 
 - run `clj -A:dev -m user` and keep it running
 
 - connect a browser at `http://localhost:8080/` and edit files at `src/lava_jato_the_game/client.cljs`
+
+- you can play with the mock graphql server on http://localhost:8888/?query=%7Bprofile%7Bname%20party%7Bname%7D%7D%7D
 
 ### About frontend
 
