@@ -142,3 +142,27 @@ shadow-cljs - nREPL server started on port 42183
 ### Community:
 
 - Checkout [clojurians](http://clojurians.net) community.
+
+## Backend Dev workflow
+
+- You can run the frontend while running/testing the backend
+
+- You may setup some integration from your editor/repl with `clojure.test/deftest`
+
+- Midje is used just for checking, not for test-runner
+
+### Example
+
+After start the repl, as in `Dev setup -> For clojure users`, run:
+
+```clojure
+=> (require '[lava-jato-the-game.integration-test])
+=> (lava-jato-the-game.integration-test/index-explorer)
+```
+
+It will run one test.
+To run all tests:
+
+```clojure
+=> (clojure.test/run-all-tests) 
+```

@@ -5,7 +5,8 @@
             [cognitect.transit :as transit]
             [com.wsscode.pathom.core :as p]
             [com.wsscode.pathom.connect :as pc]
-            [io.pedestal.http.csrf :as csrf]))
+            [io.pedestal.http.csrf :as csrf])
+  (:import (java.io ByteArrayOutputStream)))
 
 (pc/defresolver index-explorer [{::pc/keys [indexes]} _]
   {::pc/input  #{:com.wsscode.pathom.viz.index-explorer/id}
@@ -44,14 +45,25 @@
                   p/elide-special-outputs-plugin
                   p/trace-plugin]}))
 
+(defn pr-transit!
+  [out type data]
+  (transit/write
+    (transit/writer out type)
+    data)
+  out)
+
+(defn pr-transit-str
+  [type data]
+  (-> (ByteArrayOutputStream.)
+      (pr-transit! type data)
+      (str)))
+
 (defn api
   [{:keys [transit-params]
     :as   req}]
   (let [result (parser req transit-params)]
     {:body   (fn [out]
-               (transit/write
-                 (transit/writer out :json-verbose)
-                 result))
+               (pr-transit! out :json-verbose result))
      :status 200}))
 
 (defn index
