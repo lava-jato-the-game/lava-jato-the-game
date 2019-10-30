@@ -3,11 +3,15 @@
             [com.fulcrologic.fulcro.application :as fa]
             [goog.dom :as gdom]
             [goog.object :as gobj]
+            [goog.events :as gevt]
+            [goog.history.EventType :as history.EventType]
             [com.fulcrologic.fulcro.networking.http-remote :as fnh]
             [com.fulcrologic.fulcro.dom :as dom]
-            [com.fulcrologic.fulcro.routing.legacy-ui-routers :as fr]
+            [com.fulcrologic.fulcro.routing.dynamic-routing :as dr]
             [com.fulcrologic.fulcro.data-fetch :as df]
-            [com.fulcrologic.fulcro.mutations :as fm]))
+            [com.fulcrologic.fulcro.mutations :as fm]
+            [clojure.string :as string])
+  (:import (goog.history Html5History)))
 
 (defsc Player [this {:player/keys [id name]}]
   {:ident [:player/id :player/id]
@@ -56,14 +60,11 @@
   (remote [env]
           (fm/returning env Player)))
 
-(defsc Home [this {::keys   [page id]
-                   :ui/keys [profile]}]
-  {:query         [::page
-                   ::id
-                   {:ui/profile (comp/get-query Character)}]
-   :ident         (fn [] [page id])
-   :initial-state (fn [_] {::page ::home
-                           ::id   ::home})}
+(defsc Home [this {:ui/keys [profile]}]
+  {:query         [{:ui/profile (comp/get-query Character)}]
+   :ident         (fn [] [::home ::home])
+   :route-segment ["home"]
+   :initial-state (fn [_] {})}
   (dom/div
     (dom/button {:onClick #(df/load! this :lava-jato-the-game.api/me Character
                                      {:target [::home ::home :ui/profile]})}
@@ -72,17 +73,13 @@
       (ui-character profile))))
 
 (defsc Login [this {:player/keys [username password]
-                    :ui/keys     [loading?]
-                    ::keys       [page id]}]
-  {:query         [::page
-                   :player/username
+                    :ui/keys     [loading?]}]
+  {:query         [:player/username
                    :player/password
-                   :ui/loading?
-                   ::id]
-   :ident         (fn [] [page id])
-   :initial-state {::page           ::login
-                   ::id             ::login
-                   :player/username ""
+                   :ui/loading?]
+   :ident         (fn [] [::login ::login])
+   :route-segment ["login"]
+   :initial-state {:player/username ""
                    :ui/loading?     false
                    :player/password ""}}
   (let [on-login #(comp/transact! this `[(player/login ~{:username username
@@ -107,23 +104,16 @@
          #_#_:onClick on-login}
         "login"))))
 
-(fr/defsc-router RootRouter [this props]
-  {:router-id      :top-router
-   :ident          (fn [] [(::page props)
-                           (::id props)])
-   :router-targets {::login Login
-                    ::home  Home}
-   :default-route  Home}
-  "404")
+(dr/defrouter RootRouter [this props]
+  {:router-targets [Home Login]})
 
 (def ui-root-router (comp/factory RootRouter))
 
-(defsc Root [this {::keys [root-router]}]
-  {:query         [{::root-router (comp/get-query RootRouter)}]
+(defsc Root [this {:>/keys [root-router]}]
+  {:query         [{:>/root-router (comp/get-query RootRouter)}]
    :initial-state (fn [_]
-                    {::root-router (comp/get-initial-state RootRouter _)})}
-  (comp/fragment
-    (ui-root-router root-router)))
+                    {:>/root-router (comp/get-initial-state RootRouter _)})}
+  (ui-root-router root-router))
 
 (defonce SPA (atom nil))
 
@@ -131,9 +121,18 @@
   []
   (let [csrf-token (-> (gdom/getDocument)
                        (gobj/getValueByKeys "body" "dataset" "csrfToken"))
+        history (new Html5History)
+        client-did-mount (fn [app]
+                           (doto history
+                             (gevt/listen history.EventType/NAVIGATE #(when-let [token (.-token %)]
+                                                                        (dr/change-route app (-> (string/split token #"/")
+                                                                                                 rest
+                                                                                                 vec))))
+                             (.setEnabled true)))
         app (fa/fulcro-app
-              {:remotes {:remote (fnh/fulcro-http-remote {:request-middleware (-> (fnh/wrap-csrf-token csrf-token)
-                                                                                  (fnh/wrap-fulcro-request))})}})]
+              {:client-did-mount client-did-mount
+               :remotes          {:remote (fnh/fulcro-http-remote {:request-middleware (-> (fnh/wrap-csrf-token csrf-token)
+                                                                                           (fnh/wrap-fulcro-request))})}})]
     (fa/mount! app Root "app")
     (reset! SPA app)))
 

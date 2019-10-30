@@ -119,8 +119,26 @@ shadow-cljs - nREPL server started on port 42183
 
 ## Frontend Dev workflow
 
-- You can connect in the "main" app at [8080](http://localhost:8080)
+- You can connect in the "main" app at [8080](http://localhost:8080/#/home)
 
 - There is a devcards/storybook-like tool at [8080/workspaces](http://localhost:8080/workspaces)
 
 - There is a "control pannel" at [9630](http://localhost:9630) where you can find build status, REPL, debugging info and more.
+
+
+## References
+
+### Docs about frontend:
+- [fulcro](http://book.fulcrologic.com/fulcro3)
+- [react-fulcro-interop](https://medium.com/@wilkerlucio/using-any-react-ui-kit-with-fulcro-82cce271b9cc)
+- [fulcro+css](https://medium.com/@wilkerlucio/a-guide-to-organizing-styles-on-fulcro-apps-b280d2dfee6b) WARN: It's about fulcro2. We are using fulcro3.
+
+### Docs about backend:
+- [pathom](https://wilkerlucio.github.io/pathom/v2)
+- [pathom-connect](https://medium.com/@wilkerlucio/pathom-connect-higher-level-abstraction-for-writing-parsers-video-44c009e5d531)
+
+### EDN Query language: [EQL](https://edn-query-language.org/)
+
+### Community:
+
+- Checkout [clojurians](http://clojurians.net) community.
