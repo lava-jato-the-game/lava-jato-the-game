@@ -3,17 +3,40 @@
             [shadow.cljs.devtools.server :as shadow.server]
             [lava-jato-the-game.server :as server]
             [io.pedestal.http :as http]
+            [com.wsscode.pathom.gen :as pgen]
             [io.pedestal.http.route :as route]
             [ring.util.mime-type :as mime]
-            [hiccup.core :as h]))
+            [hiccup.core :as h]
+            [io.pedestal.http.csrf :as csrf]
+            [cognitect.transit :as transit]
+            [clojure.spec.alpha :as s]))
+
+(s/def :character/id number?)
+(s/def :character/name string?)
+(s/def :player/id number?)
+(s/def :player/name string?)
+(s/def :party/id number?)
+(s/def :party/name string?)
+(s/def :party/description string?)
+
+
+(defn api-gen
+  [{:keys [transit-params]}]
+  (let [result (pgen/query->props transit-params)]
+    {:body   (fn [out]
+               (transit/write
+                 (transit/writer out :json-verbose)
+                 result))
+     :status 200}))
 
 (defn workspaces
-  [_]
+  [{::csrf/keys [anti-forgery-token]}]
   {:body    (h/html [:html {:lang "pt-BR"}
                      [:head
                       [:meta {:charset "UTF-8"}]
                       [:title "Workspaces"]]
                      [:body
+                      {:data-csrf-token anti-forgery-token}
                       [:div
                        {:id "app"}]
                       [:script {:src "/js/workspaces/main.js"}]]])
@@ -38,7 +61,9 @@
                           (assoc :env :dev
                                  ::http/join? false
                                  ::http/routes (fn []
-                                                 (route/expand-routes (conj server/routes `["/workspaces" :get workspaces])))
+                                                 (route/expand-routes (conj server/routes
+                                                                            `["/workspaces" :get workspaces]
+                                                                            `["/api-gen" :post api-gen])))
                                  ::http/file-path "target/public")
                           server/default-interceptors
                           http/dev-interceptors
