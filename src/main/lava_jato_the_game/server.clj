@@ -7,6 +7,15 @@
             [com.wsscode.pathom.connect :as pc]
             [io.pedestal.http.csrf :as csrf]))
 
+(pc/defresolver index-explorer [{::pc/keys [indexes]} _]
+  {::pc/input  #{:com.wsscode.pathom.viz.index-explorer/id}
+   ::pc/output [:com.wsscode.pathom.viz.index-explorer/index]}
+  {:com.wsscode.pathom.viz.index-explorer/index (p/transduce-maps
+                                                  (remove (comp #{::pc/resolve ::pc/mutate}
+                                                                key))
+                                                  indexes)})
+
+
 (pc/defresolver me [this props]
   {::pc/output [:lava-jato-the-game.api/me]}
   {:lava-jato-the-game.api/me {:character/id     0
@@ -19,7 +28,7 @@
 
 
 (def register
-  [me])
+  [me index-explorer])
 
 (def parser
   (p/parser

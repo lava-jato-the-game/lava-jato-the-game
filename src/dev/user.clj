@@ -11,6 +11,8 @@
             [cognitect.transit :as transit]
             [clojure.spec.alpha :as s]))
 
+(alter-var-root #'*print-namespace-maps* (constantly false))
+
 (s/def :character/id uuid?)
 (s/def :character/name string?)
 (s/def :player/id uuid?)
