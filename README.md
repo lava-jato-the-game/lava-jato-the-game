@@ -21,11 +21,3 @@
 - Use [clojurescript](https://clojurescript.org) as main language
  
 - Use [fulcro](http://book.fulcrologic.com/) to control `state` and `dom`.
-
-- Use [pathom](https://wilkerlucio.github.io/pathom) as a "network driver" to turn
- [EQL](https://github.com/edn-query-language/eql)'s from fulcro into graphql queries/mutations.
- 
-- There is in `ùser.clj` a [lacinia](http://lacinia.readthedocs.io/) server that runs on
-port `8888` and provide a fake-data-mock GraphQL API auto-generated from schema.
-
-- Is use [shadow-cljs](http://shadow-cljs.github.io/) build and serve JS at port `8080`

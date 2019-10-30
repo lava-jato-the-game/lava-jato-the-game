@@ -1,14 +1,15 @@
 (ns lava-jato-the-game.client
-  (:require [goog.dom :as gdom]
-            [fulcro.client.primitives :as fp]
-            [fulcro.client :as fc]
-            [com.wsscode.pathom.fulcro.network :as pfn]
-            [fulcro.client.dom :as dom]
-            [fulcro.client.routing :as fr]
-            [fulcro.client.data-fetch :as df]
-            [fulcro.client.mutations :as fm]))
+  (:require [com.fulcrologic.fulcro.components :as comp :refer [defsc]]
+            [com.fulcrologic.fulcro.application :as fa]
+            [goog.dom :as gdom]
+            [goog.object :as gobj]
+            [com.fulcrologic.fulcro.networking.http-remote :as fnh]
+            [com.fulcrologic.fulcro.dom :as dom]
+            [com.fulcrologic.fulcro.routing.legacy-ui-routers :as fr]
+            [com.fulcrologic.fulcro.data-fetch :as df]
+            [com.fulcrologic.fulcro.mutations :as fm]))
 
-(fp/defsc Player [this {:player/keys [id name]}]
+(defsc Player [this {:player/keys [id name]}]
   {:ident [:player/id :player/id]
    :query [:player/id
            :player/name]}
@@ -19,12 +20,9 @@
     (dom/code "ID: " (dom/code (str id)))
     (dom/hr)))
 
+(def ui-player (comp/factory Player {:keyfn :player/id}))
 
-
-
-(def ui-player (fp/factory Player {:keyfn :player/id}))
-
-(fp/defsc Party [this {:party/keys [id name description]}]
+(defsc Party [this {:party/keys [id name description]}]
   {:query [:party/id
            :party/name
            :party/description]
@@ -34,13 +32,13 @@
     (dom/code id)
     (dom/div description)))
 
-(def ui-party (fp/factory Party {:keyfn :party/id}))
+(def ui-party (comp/factory Party {:keyfn :party/id}))
 
-(fp/defsc Character [this {:character/keys [id name player party]}]
+(defsc Character [this {:character/keys [id name player party]}]
   {:query [:character/id
            :character/name
-           {:character/player (fp/get-query Player)}
-           {:character/party (fp/get-query Party)}]
+           {:character/player (comp/get-query Player)}
+           {:character/party (comp/get-query Party)}]
    :ident [:character/id :character/id]}
   (dom/div
     (dom/h2 name)
@@ -48,7 +46,7 @@
     (ui-player player)
     (ui-party party)))
 
-(def ui-character (fp/factory Character {:keyfn :character/id}))
+(def ui-character (comp/factory Character {:keyfn :character/id}))
 
 (fm/defmutation player/login
   [_]
@@ -56,28 +54,27 @@
           (swap! state (fn [st]
                          (prn [:st st])
                          (assoc-in st [::login ::login :ui/loading?] true))))
-  (remote [{:keys [ast state]}]
-          (-> ast
-              (fm/returning state Player))))
+  (remote [env]
+          (fm/returning env Player)))
 
-(fp/defsc Home [this {::keys   [page id]
-                      :ui/keys [profile]}]
+(defsc Home [this {::keys   [page id]
+                   :ui/keys [profile]}]
   {:query         [::page
                    ::id
-                   {:ui/profile (fp/get-query Character)}]
+                   {:ui/profile (comp/get-query Character)}]
    :ident         (fn [] [page id])
    :initial-state (fn [_] {::page ::home
                            ::id   ::home})}
   (dom/div
-    (dom/button {:onClick #(df/load this :query/profile Character
-                                    {:target [::home ::home :ui/profile]})}
+    (dom/button {:onClick #(df/load! this :lava-jato-the-game.api/me Character
+                                     {:target [::home ::home :ui/profile]})}
                 "load")
     (when profile
       (ui-character profile))))
 
-(fp/defsc Login [this {:player/keys [username password]
-                       :ui/keys     [loading?]
-                       ::keys       [page id]}]
+(defsc Login [this {:player/keys [username password]
+                    :ui/keys     [loading?]
+                    ::keys       [page id]}]
   {:query         [::page
                    :player/username
                    :player/password
@@ -89,8 +86,8 @@
                    :player/username ""
                    :ui/loading?     false
                    :player/password ""}}
-  (let [on-login #(fp/transact! this `[(player/login ~{:username username
-                                                       :password password})])]
+  (let [on-login #(comp/transact! this `[(player/login ~{:username username
+                                                         :password password})])]
     (dom/form
       {:onSubmit (fn [e]
                    (.preventDefault e)
@@ -120,26 +117,25 @@
    :default-route  Home}
   "404")
 
-(def ui-root-router (fp/factory RootRouter))
+(def ui-root-router (comp/factory RootRouter))
 
-(fp/defsc Root [this {::keys [root-router]}]
-  {:query         [{::root-router (fp/get-query RootRouter)}]
+(defsc Root [this {::keys [root-router]}]
+  {:query         [{::root-router (comp/get-query RootRouter)}]
    :initial-state (fn [_]
-                    {::root-router (fp/get-initial-state RootRouter _)})}
-  (fp/fragment
+                    {::root-router (comp/get-initial-state RootRouter _)})}
+  (comp/fragment
     (ui-root-router root-router)))
 
-(defonce app (atom nil))
-
-(defn render!
-  []
-  (let [target (gdom/getElement "app")]
-    (swap! app fc/mount Root target)))
+(defonce SPA (atom nil))
 
 (defn ^:export main
   []
-  (let [client (fc/make-fulcro-client
-                 {:networking {:remote (pfn/graphql-network "http://localhost:8888/graphql")}})]
-    (reset! app client)
-    (render!)
-    client))
+  (let [csrf-token (-> (gdom/getDocument)
+                       (gobj/getValueByKeys "body" "dataset" "csrfToken"))
+        app (fa/fulcro-app
+              {:remotes {:remote (fnh/fulcro-http-remote {:request-middleware (-> (fnh/wrap-csrf-token csrf-token)
+                                                                                  (fnh/wrap-fulcro-request))})}})]
+    (fa/mount! app Root "app")
+    (reset! SPA app)))
+
+

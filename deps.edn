@@ -1,18 +1,19 @@
-{:paths   ["src/client" "resources"]
- :deps    {org.clojure/clojure       {:mvn/version "1.10.1-beta1"}
-           org.clojure/clojurescript {:mvn/version "1.10.520"}
-           thheller/shadow-cljs      {:mvn/version "2.8.22"}
-           com.wsscode/pathom        {:mvn/version "2.2.12"}
-           fulcrologic/fulcro        {:mvn/version "2.8.7"}
+{:paths   ["src/main" "resources"]
+ :deps    {org.clojure/clojure          {:mvn/version "1.10.1"}
+           org.clojure/clojurescript    {:mvn/version "1.10.520"}
+           com.wsscode/pathom           {:mvn/version "2.2.26"}
+           com.fulcrologic/fulcro       {:mvn/version "3.0.6"}
+           io.pedestal/pedestal.service {:mvn/version "0.5.7"}
+           com.cognitect/transit-clj    {:mvn/version "0.8.319"}
+           com.cognitect/transit-cljs   {:mvn/version "0.8.256"}
+           io.pedestal/pedestal.jetty   {:mvn/version "0.5.7"}
+           hiccup/hiccup                {:mvn/version "2.0.0-alpha2"}
            ;; implicit ring dep
-           clj-time/clj-time         {:mvn/version "0.15.1"}}
- :aliases {:dev {:extra-paths ["src/dev" "dev-resources"]
-                 :extra-deps  {com.walmartlabs/lacinia          {:mvn/version "0.32.0"}
-                               io.pedestal/pedestal.service     {:mvn/version "0.5.5"}
-                               io.pedestal/pedestal.jetty       {:mvn/version "0.5.5"}
-                               binaryage/devtools               {:mvn/version "0.9.10"}
-                               fulcrologic/fulcro-inspect       {:mvn/version "2.2.5"}
-                               nubank/workspaces                {:mvn/version "1.0.5"}
-                               com.walmartlabs/lacinia-pedestal {:mvn/version "0.11.0"}
-                               org.clojure/test.check           {:mvn/version "0.10.0-alpha3"}
-                               com.rpl/specter                  {:mvn/version "1.1.2"}}}}}
+           clj-time/clj-time            {:mvn/version "0.15.2"}}
+ :aliases {:dev {:extra-paths ["src/dev"]
+                 :extra-deps  {binaryage/devtools     {:mvn/version "0.9.10"}
+                               nubank/workspaces      {:mvn/version "1.0.13"}
+                               gnl/ghostwheel         {:mvn/version "0.3.9"}
+                               thheller/shadow-cljs   {:mvn/version "2.8.68"}
+                               org.clojure/test.check {:mvn/version "0.10.0"}
+                               com.rpl/specter        {:mvn/version "1.1.3"}}}}}

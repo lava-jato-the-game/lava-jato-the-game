@@ -1,8 +1,7 @@
 (ns lava-jato-the-game.user
   (:require [lava-jato-the-game.client :as client]
-            [devtools.preload]
-            [fulcro.inspect.preload]))
+            [com.fulcrologic.fulcro.application :as fa]))
 
 (defn after-load
   []
-  (client/render!))
+  (fa/force-root-render! @client/SPA))

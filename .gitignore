@@ -13,3 +13,4 @@ resources/public/js/
 erl_crash.dump
 *.ez
 lava_jato_the_game-*.tar
+target/

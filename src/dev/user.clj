@@ -1,72 +1,46 @@
 (ns user
-  (:require [com.walmartlabs.lacinia :as lacinia]
-            [com.walmartlabs.lacinia.pedestal :as lacinia.pedestal]
-            [com.walmartlabs.lacinia.schema :as lacinia.schema]
-            [com.walmartlabs.lacinia.parser.schema :as lacinia.parser.schema]
+  (:require [shadow.cljs.devtools.api :as shadow.api]
+            [shadow.cljs.devtools.server :as shadow.server]
+            [lava-jato-the-game.server :as server]
             [io.pedestal.http :as http]
-            [shadow.cljs.devtools.server :as server]
-            [shadow.cljs.devtools.api :as shadow]
-            [com.rpl.specter :as sp]
-            [clojure.java.io :as io]
-            [clojure.spec.alpha :as s]
-            [clojure.test.check.generators :as gen]))
-(def type->gen
-  {'ID     (s/gen uuid?)
-   'Int    (s/gen integer?)
-   'String (s/gen string?)})
+            [io.pedestal.http.route :as route]
+            [ring.util.mime-type :as mime]
+            [hiccup.core :as h]))
 
-(defn add-gen
-  [x]
-  #_(clojure.pprint/pprint x)
-  (sp/transform (sp/walker :type)
-                (fn [{:keys [type] :as f}]
-                  (let [many? (seq? type)
-                        type-id (if many? (last type) type)
-                        generator (or (get type->gen type-id)
-                                      (when (keyword? type-id)
-                                        (gen/hash-map :id (s/gen uuid?)))
-                                      (throw (ex-info (pr-str f) f)))
-                        generator (if many?
-                                    (gen/vector generator)
-                                    generator)]
-                    (assoc f :resolve (fn [_ _ _]
-                                        (let [data (gen/generate generator)]
-                                          data)))))
-                x))
+(defn workspaces
+  [_]
+  {:body    (h/html [:html {:lang "pt-BR"}
+                     [:head
+                      [:meta {:charset "UTF-8"}]
+                      [:title "Workspaces"]]
+                     [:body
+                      [:div
+                       {:id "app"}]
+                      [:script {:src "/js/workspaces/main.js"}]]])
+   :headers {"Content-Security-Policy" ""
+             "Cache-Control"           "no-store"
+             "Content-Type"            (mime/default-mime-types "html")}
+   :status  200})
 
-(defn schema
-  [f]
-  (-> (slurp f)
-      (lacinia.parser.schema/parse-schema {})
-      add-gen
-      (lacinia.schema/compile)))
 
 (defonce http-state (atom nil))
 
-(defonce shadow-server
-         (delay (server/start!)))
-
 (defn -main
-  [& args]
-  (prn [@shadow-server])
-  (shadow/watch :client)
-  (shadow/watch :workspaces)
-  (swap! http-state (fn [x]
-                      (when x
-                        (http/stop x))
-                      (-> (lacinia.pedestal/service-map #(schema (io/resource "schema.graphql"))
-                                                        {:graphiql true})
-                          (assoc ::http/allowed-origins (constantly true))
-                          http/default-interceptors
+  {:shadow/requires-server true}
+  [& _]
+  (shadow.server/start!)
+  (shadow.api/watch :client)
+  (shadow.api/watch :workspaces)
+  (swap! http-state (fn [st]
+                      (when st
+                        (http/stop st))
+                      (-> server/service
+                          (assoc :env :dev
+                                 ::http/join? false
+                                 ::http/routes (fn []
+                                                 (route/expand-routes (conj server/routes `["/workspaces" :get workspaces])))
+                                 ::http/file-path "target/public")
+                          server/default-interceptors
                           http/dev-interceptors
                           http/create-server
-                          http/start)))
-  nil)
-
-(def context
-  {})
-
-(defn q
-  [& [query variables options]]
-  (lacinia/execute (schema (io/resource "schema.graphql"))
-                   query variables context options))
+                          http/start))))
