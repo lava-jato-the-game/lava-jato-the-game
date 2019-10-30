@@ -11,11 +11,11 @@
             [cognitect.transit :as transit]
             [clojure.spec.alpha :as s]))
 
-(s/def :character/id number?)
+(s/def :character/id uuid?)
 (s/def :character/name string?)
-(s/def :player/id number?)
+(s/def :player/id uuid?)
 (s/def :player/name string?)
-(s/def :party/id number?)
+(s/def :party/id uuid?)
 (s/def :party/name string?)
 (s/def :party/description string?)
 

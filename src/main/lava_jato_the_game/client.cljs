@@ -29,7 +29,7 @@
    :ident [:party/id :party/id]}
   (dom/div
     (dom/h2 name)
-    (dom/code id)
+    (dom/code (str id))
     (dom/div description)))
 
 (def ui-party (comp/factory Party {:keyfn :party/id}))
@@ -42,7 +42,7 @@
    :ident [:character/id :character/id]}
   (dom/div
     (dom/h2 name)
-    (dom/code id)
+    (dom/code (str id))
     (ui-player player)
     (ui-party party)))
 
@@ -52,7 +52,6 @@
   [_]
   (action [{:keys [state]}]
           (swap! state (fn [st]
-                         (prn [:st st])
                          (assoc-in st [::login ::login :ui/loading?] true))))
   (remote [env]
           (fm/returning env Player)))

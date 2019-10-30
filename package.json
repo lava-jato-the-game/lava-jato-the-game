@@ -7,7 +7,9 @@
     "react-dom": "16.11.0"
   },
   "devDependencies": {
-    "shadow-cljs": "2.8.67",
+    "react-icons": "3.8.0",
+    "reakit": "0.16.0",
+    "shadow-cljs": "2.8.68",
     "highlight.js": "9.15.10",
     "react-grid-layout": "0.17.1"
   }
